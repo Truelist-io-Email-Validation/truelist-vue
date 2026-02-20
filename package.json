@@ -1,0 +1,66 @@
+{
+  "name": "@truelist/vue",
+  "version": "0.1.0",
+  "description": "Vue composables and components for Truelist.io email validation",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Truelist-io-Email-Validation/truelist-vue.git"
+  },
+  "homepage": "https://truelist.io",
+  "bugs": {
+    "url": "https://github.com/Truelist-io-Email-Validation/truelist-vue/issues"
+  },
+  "keywords": [
+    "vue",
+    "email",
+    "validation",
+    "truelist",
+    "email-validation",
+    "form-validation",
+    "composable"
+  ],
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "eslint src/ --ext .ts,.vue",
+    "ci": "npm run typecheck && npm run lint",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.23.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vue": "^3.4.0",
+    "vue-tsc": "^2.0.0"
+  }
+}
