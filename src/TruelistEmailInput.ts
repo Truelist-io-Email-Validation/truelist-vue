@@ -16,7 +16,7 @@ import type { ValidationResult } from "./types";
  * ```vue
  * <TruelistEmailInput
  *   v-model="email"
- *   api-key="your-form-api-key"
+ *   api-key="your-api-key"
  *   validate-on="blur"
  *   :debounce-ms="500"
  *   @validation-result="handleResult"
@@ -148,7 +148,7 @@ export const TruelistEmailInput = defineComponent({
           disabled: props.disabled,
           "data-validation-state": dataState.value,
           "aria-invalid":
-            result.value?.state === "invalid" ? true : undefined,
+            result.value?.state === "email_invalid" ? true : undefined,
           onInput: handleInput,
           onBlur: handleBlur,
         }),
