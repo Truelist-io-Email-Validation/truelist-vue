@@ -15,7 +15,7 @@ export const TRUELIST_CONFIG_KEY: InjectionKey<TruelistConfig> =
  * @example
  * ```vue
  * <template>
- *   <TruelistProvider api-key="your-form-api-key">
+ *   <TruelistProvider api-key="your-api-key">
  *     <router-view />
  *   </TruelistProvider>
  * </template>
