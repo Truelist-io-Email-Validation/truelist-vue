@@ -17,15 +17,15 @@ Use the composable directly with an API key:
 import { useEmailValidation } from '@truelist/vue'
 
 const { email, result, isValidating } = useEmailValidation({
-  apiKey: 'your-form-api-key',
+  apiKey: 'your-api-key',
 })
 </script>
 
 <template>
   <input v-model="email" type="email" placeholder="you@example.com" />
   <span v-if="isValidating">Checking...</span>
-  <span v-else-if="result?.state === 'valid'">Valid!</span>
-  <span v-else-if="result?.state === 'invalid'">Invalid email</span>
+  <span v-else-if="result?.state === 'ok'">Valid!</span>
+  <span v-else-if="result?.state === 'email_invalid'">Invalid email</span>
 </template>
 ```
 
@@ -40,7 +40,7 @@ import { TruelistProvider } from '@truelist/vue'
 </script>
 
 <template>
-  <TruelistProvider api-key="your-form-api-key">
+  <TruelistProvider api-key="your-api-key">
     <router-view />
   </TruelistProvider>
 </template>
@@ -65,7 +65,7 @@ The primary way to add email validation to any UI. Headless by design -- you con
 import { useEmailValidation } from '@truelist/vue'
 
 const { email, result, isValidating, error, validate, reset } = useEmailValidation({
-  apiKey: 'your-form-api-key',
+  apiKey: 'your-api-key',
   debounceMs: 500,
   validateOn: 'blur',
   onResult: (result) => console.log(result),
@@ -77,8 +77,8 @@ const { email, result, isValidating, error, validate, reset } = useEmailValidati
   <div>
     <input v-model="email" type="email" @blur="validate" placeholder="you@example.com" />
     <span v-if="isValidating">Checking...</span>
-    <span v-else-if="result?.state === 'invalid'">This email is not valid.</span>
-    <span v-else-if="result?.state === 'risky'">This email may not receive mail.</span>
+    <span v-else-if="result?.state === 'email_invalid'">This email is not valid.</span>
+    <span v-else-if="result?.state === 'accept_all'">This email may not be verifiable.</span>
     <span v-if="result?.suggestion">Did you mean {{ result.suggestion }}?</span>
     <span v-if="error">{{ error }}</span>
     <button @click="reset">Clear</button>
@@ -101,7 +101,7 @@ const { email, result, isValidating, error, validate, reset } = useEmailValidati
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `apiKey` | `string` | -- | Your Truelist form API key (or use provider) |
+| `apiKey` | `string` | -- | Your Truelist API key (or use provider) |
 | `baseUrl` | `string` | `https://api.truelist.io` | Custom API base URL |
 | `debounceMs` | `number` | `500` | Debounce delay. Set to 0 to disable. |
 | `validateOn` | `"blur" \| "change"` | `"blur"` | When to trigger automatic validation |
@@ -127,7 +127,7 @@ function handleResult(result) {
 <template>
   <TruelistEmailInput
     v-model="email"
-    api-key="your-form-api-key"
+    api-key="your-api-key"
     validate-on="blur"
     :debounce-ms="500"
     placeholder="you@example.com"
@@ -141,7 +141,7 @@ function handleResult(result) {
 Customize rendering with named slots:
 
 ```vue
-<TruelistEmailInput v-model="email" api-key="your-form-api-key">
+<TruelistEmailInput v-model="email" api-key="your-api-key">
   <template #validating>
     <span class="spinner">Verifying...</span>
   </template>
@@ -155,7 +155,7 @@ Customize rendering with named slots:
   </template>
 
   <template #result="{ result }">
-    <span v-if="result.state === 'valid'" class="success">Looks good!</span>
+    <span v-if="result.state === 'ok'" class="success">Looks good!</span>
   </template>
 </TruelistEmailInput>
 ```
@@ -165,15 +165,15 @@ Customize rendering with named slots:
 The input exposes a `data-validation-state` attribute for CSS styling:
 
 ```css
-input[data-validation-state="valid"] {
+input[data-validation-state="ok"] {
   border-color: green;
 }
 
-input[data-validation-state="invalid"] {
+input[data-validation-state="email_invalid"] {
   border-color: red;
 }
 
-input[data-validation-state="risky"] {
+input[data-validation-state="accept_all"] {
   border-color: orange;
 }
 
@@ -191,7 +191,7 @@ input[data-validation-state="idle"] {
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `modelValue` / `v-model` | `string` | `""` | The email value |
-| `apiKey` | `string` | -- | Your Truelist form API key (or use provider) |
+| `apiKey` | `string` | -- | Your Truelist API key (or use provider) |
 | `baseUrl` | `string` | `https://api.truelist.io` | Custom API base URL |
 | `validateOn` | `"blur" \| "change"` | `"blur"` | When to trigger validation |
 | `debounceMs` | `number` | `500` | Debounce delay for "change" mode |
@@ -224,7 +224,7 @@ function manualValidate() {
 </script>
 
 <template>
-  <TruelistEmailInput ref="inputRef" api-key="your-form-api-key" v-model="email" />
+  <TruelistEmailInput ref="inputRef" api-key="your-api-key" v-model="email" />
   <button @click="manualValidate">Validate</button>
 </template>
 ```
@@ -243,17 +243,17 @@ import type {
 ### `ValidationState`
 
 ```ts
-type ValidationState = "valid" | "invalid" | "risky" | "unknown";
+type ValidationState = "ok" | "email_invalid" | "accept_all" | "unknown";
 ```
 
 ### `ValidationSubState`
 
 ```ts
 type ValidationSubState =
-  | "ok"
+  | "email_ok"
   | "accept_all"
-  | "disposable_address"
-  | "role_address"
+  | "is_disposable"
+  | "is_role"
   | "failed_mx_check"
   | "failed_spam_trap"
   | "failed_no_mailbox"
@@ -266,12 +266,16 @@ type ValidationSubState =
 
 ```ts
 type ValidationResult = {
+  email: string;
+  domain: string;
+  canonical: string;
+  mxRecord: string | null;
+  firstName: string | null;
+  lastName: string | null;
   state: ValidationState;
   subState: ValidationSubState;
-  email: string;
-  suggestion?: string;
-  freeEmail?: boolean;
-  role?: boolean;
+  verifiedAt: string;
+  suggestion: string | null;
 };
 ```
 
@@ -290,15 +294,14 @@ type TruelistConfig = {
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `apiKey` | `string` | *required* | Your Truelist form API key |
+| `apiKey` | `string` | *required* | Your Truelist API key |
 | `baseUrl` | `string` | `https://api.truelist.io` | Custom API base URL |
 
 ### API Details
 
-- **Endpoint**: `POST https://api.truelist.io/api/v1/form_verify`
-- **Auth**: Bearer token (your form API key)
-- **Rate limit**: 60 requests per minute for form keys
-- **Billing**: Credits are only charged for definitive results (`valid`/`invalid`), not for `unknown`
+- **Endpoint**: `POST https://api.truelist.io/api/v1/verify_inline?email=...`
+- **Auth**: Bearer token (your API key)
+- **Response**: `{ "emails": [{ ... }] }`
 
 Get your API key at [truelist.io](https://truelist.io).
 

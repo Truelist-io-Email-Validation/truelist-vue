@@ -1,12 +1,12 @@
 /** Primary validation state returned by the Truelist API. */
-export type ValidationState = "valid" | "invalid" | "risky" | "unknown";
+export type ValidationState = "ok" | "email_invalid" | "accept_all" | "unknown";
 
 /** Detailed sub-state providing more context about the validation result. */
 export type ValidationSubState =
-  | "ok"
+  | "email_ok"
   | "accept_all"
-  | "disposable_address"
-  | "role_address"
+  | "is_disposable"
+  | "is_role"
   | "failed_mx_check"
   | "failed_spam_trap"
   | "failed_no_mailbox"
@@ -16,37 +16,51 @@ export type ValidationSubState =
 
 /** The result object returned after validating an email address. */
 export type ValidationResult = {
+  /** The email address that was validated. */
+  email: string;
+  /** The domain part of the email address. */
+  domain: string;
+  /** The canonical (local) part of the email address. */
+  canonical: string;
+  /** The MX record for the domain, if found. */
+  mxRecord: string | null;
+  /** First name associated with the email, if found. */
+  firstName: string | null;
+  /** Last name associated with the email, if found. */
+  lastName: string | null;
   /** The primary validation state. */
   state: ValidationState;
   /** Detailed sub-state for the validation result. */
   subState: ValidationSubState;
-  /** The email address that was validated. */
-  email: string;
-  /** A suggested correction if a typo was detected (e.g. "Did you mean gmail.com?"). */
-  suggestion?: string;
-  /** Whether the email belongs to a free email provider. */
-  freeEmail: boolean;
-  /** Whether the email is a role-based address (e.g. info@, support@). */
-  role: boolean;
-  /** Whether the email uses a disposable/temporary email provider. */
-  disposable: boolean;
+  /** The timestamp when the email was verified. */
+  verifiedAt: string;
+  /** A suggested correction if a typo was detected (e.g. "user@gmail.com"). */
+  suggestion: string | null;
 };
 
 /** Configuration for the Truelist provider and API client. */
 export type TruelistConfig = {
-  /** Your Truelist form API key. */
+  /** Your Truelist API key. */
   apiKey: string;
   /** Base URL for the Truelist API. Defaults to `https://api.truelist.io`. */
   baseUrl?: string;
 };
 
-/** Raw API response shape from the form_verify endpoint. */
+/** Raw API response shape from the verify_inline endpoint. */
+export type ApiEmailEntry = {
+  address: string;
+  domain: string;
+  canonical: string;
+  mx_record: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email_state: ValidationState;
+  email_sub_state: ValidationSubState;
+  verified_at: string;
+  did_you_mean: string | null;
+};
+
+/** Raw API response wrapper. */
 export type ApiResponse = {
-  state: ValidationState;
-  sub_state: ValidationSubState;
-  email: string;
-  suggestion?: string;
-  free_email: boolean;
-  role: boolean;
-  disposable: boolean;
+  emails: ApiEmailEntry[];
 };

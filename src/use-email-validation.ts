@@ -7,7 +7,7 @@ import type { TruelistConfig, ValidationResult } from "./types";
 export type ValidateOn = "blur" | "change";
 
 export type UseEmailValidationOptions = {
-  /** Your Truelist form API key. Can be omitted if using TruelistProvider. */
+  /** Your Truelist API key. Can be omitted if using TruelistProvider. */
   apiKey?: string;
   /** Base URL for the Truelist API. Defaults to `https://api.truelist.io`. */
   baseUrl?: string;
@@ -50,14 +50,14 @@ export type UseEmailValidationReturn = {
  * import { useEmailValidation } from '@truelist/vue'
  *
  * const { email, result, isValidating } = useEmailValidation({
- *   apiKey: 'your-form-api-key',
+ *   apiKey: 'your-api-key',
  * })
  * </script>
  *
  * <template>
  *   <input v-model="email" type="email" />
  *   <span v-if="isValidating">Checking...</span>
- *   <span v-else-if="result?.state === 'valid'">Valid!</span>
+ *   <span v-else-if="result?.state === 'ok'">Valid!</span>
  * </template>
  * ```
  */

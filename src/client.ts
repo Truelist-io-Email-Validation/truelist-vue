@@ -29,29 +29,27 @@ export async function verifyEmail(
   signal?: AbortSignal
 ): Promise<ValidationResult> {
   const baseUrl = config.baseUrl ?? DEFAULT_BASE_URL;
-  const url = `${baseUrl}/api/v1/form_verify`;
+  const url = `${baseUrl}/api/v1/verify_inline?email=${encodeURIComponent(email)}`;
 
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${config.apiKey}`,
     },
-    body: JSON.stringify({ email }),
     signal,
   });
 
   if (!response.ok) {
     if (response.status === 429) {
       throw new TruelistApiError(
-        "Rate limit exceeded. The form API allows 60 requests per minute.",
+        "Rate limit exceeded. Please try again later.",
         429
       );
     }
 
     if (response.status === 401) {
       throw new TruelistApiError(
-        "Invalid API key. Check your Truelist form API key.",
+        "Invalid API key. Check your Truelist API key.",
         401
       );
     }
@@ -63,14 +61,22 @@ export async function verifyEmail(
   }
 
   const data: ApiResponse = await response.json();
+  const entry = data.emails[0];
+
+  if (!entry) {
+    throw new TruelistApiError("No email result returned from Truelist API.");
+  }
 
   return {
-    state: data.state,
-    subState: data.sub_state,
-    email: data.email,
-    suggestion: data.suggestion,
-    freeEmail: data.free_email,
-    role: data.role,
-    disposable: data.disposable,
+    email: entry.address,
+    domain: entry.domain,
+    canonical: entry.canonical,
+    mxRecord: entry.mx_record,
+    firstName: entry.first_name,
+    lastName: entry.last_name,
+    state: entry.email_state,
+    subState: entry.email_sub_state,
+    verifiedAt: entry.verified_at,
+    suggestion: entry.did_you_mean,
   };
 }
